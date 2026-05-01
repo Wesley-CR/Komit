@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: komit
+  datasource:
+    url: jdbc:postgresql://localhost:5432/komit
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+server:
+  port: 8080
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
