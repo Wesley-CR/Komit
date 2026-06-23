@@ -1,5 +1,5 @@
 # Komit
-Komit es una API REST de backend desarrollada con Spring Boot para gestionar comisiones artísticas. Permite llevar el control de clientes, tipos de comisión, hitos, revisiones, pagos y referencias de manera organizada y estructurada.
+Komit es una aplicación fullstack para gestionar comisiones artísticas, con un backend en Spring Boot y un frontend en React. Permite llevar el control de clientes, tipos de comisión, hitos, revisiones, pagos y referencias de manera organizada y estructurada.
 
 ## Requisitos Previos
 
@@ -110,4 +110,47 @@ Si también quieres eliminar el volumen con los datos almacenados:
 ```bash
 docker compose down -v
 ```
+---
+
+## Frontend
+
+El frontend está en el directorio `frontend/` y usa Vite + React 18 + TypeScript + Tailwind CSS.
+
+### Requisitos
+
+- **Node.js** 18 o superior
+- **npm** (incluido con Node.js)
+
+### Instalación
+
+```bash
+cd frontend
+npm install
+```
+
+### Variables de entorno
+
+Copia el archivo de ejemplo y ajustá si es necesario:
+
+```bash
+cp .env.example .env
+```
+
+El valor por defecto apunta al backend en `http://localhost:8080`.
+
+### Ejecutar en modo desarrollo
+
+```bash
+npm run dev
+```
+
+El servidor de desarrollo se levanta en `http://localhost:5173`.
+
+### Cuentas de prueba
+
+| Rol | Email | Contraseña |
+|---|---|---|
+| ARTIST | `artist@komit.local` | `changeme123` |
+| CLIENT | (registrarse desde `/signup`) | — |
+
 ---
