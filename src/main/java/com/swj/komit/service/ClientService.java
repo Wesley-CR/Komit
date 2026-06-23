@@ -3,13 +3,10 @@ package com.swj.komit.service;
 import com.swj.komit.dto.request.CreateClientRequest;
 import com.swj.komit.dto.request.UpdateClientRequest;
 import com.swj.komit.dto.response.ClientResponse;
-import com.swj.komit.dto.response.CommissionSummaryResponse;
 import com.swj.komit.entity.Client;
 import com.swj.komit.exception.ResourceNotFoundException;
 import com.swj.komit.mapper.ClientMapper;
-import com.swj.komit.mapper.CommissionMapper;
 import com.swj.komit.repository.ClientRepository;
-import com.swj.komit.repository.CommissionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,9 +21,7 @@ import java.util.List;
 public class ClientService {
 
     private final ClientRepository clientRepository;
-    private final CommissionRepository commissionRepository;
     private final ClientMapper clientMapper;
-    private final CommissionMapper commissionMapper;
 
     @Transactional(readOnly = true)
     public List<ClientResponse> findAll() {
@@ -52,12 +47,6 @@ public class ClientService {
     public void delete(Long id) {
         getClientOrThrow(id);
         clientRepository.deleteById(id);
-    }
-
-    @Transactional(readOnly = true)
-    public List<CommissionSummaryResponse> getClientCommissions(Long clientId) {
-        getClientOrThrow(clientId);
-        return commissionMapper.toSummaryResponseList(commissionRepository.findByClientId(clientId));
     }
 
     Client getClientOrThrow(Long id) {

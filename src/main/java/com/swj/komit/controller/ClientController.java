@@ -3,7 +3,6 @@ package com.swj.komit.controller;
 import com.swj.komit.dto.request.CreateClientRequest;
 import com.swj.komit.dto.request.UpdateClientRequest;
 import com.swj.komit.dto.response.ClientResponse;
-import com.swj.komit.dto.response.CommissionSummaryResponse;
 import com.swj.komit.service.ClientService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -51,11 +50,5 @@ public class ClientController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         clientService.delete(id);
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/{id}/commissions")
-    @PreAuthorize("hasRole('ARTIST')")
-    public ResponseEntity<List<CommissionSummaryResponse>> getCommissions(@PathVariable Long id) {
-        return ResponseEntity.ok(clientService.getClientCommissions(id));
     }
 }
