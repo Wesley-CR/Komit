@@ -1,3 +1,4 @@
+import { Navigate } from "react-router-dom";
 import { Layout } from "../components/Layout";
 import { Card } from "../components/ui/Card";
 import { useAuth } from "../context/AuthContext";
@@ -8,7 +9,9 @@ const roleBadge: Record<string, string> = {
 };
 
 export function DashboardPage() {
-  const { user } = useAuth();
+  const { user, isArtist } = useAuth();
+
+  if (isArtist) return <Navigate to="/commissions" replace />;
 
   return (
     <Layout>
@@ -25,7 +28,7 @@ export function DashboardPage() {
           <div>
             <p className="font-medium text-slate-900">{user?.email}</p>
             <span
-              className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${roleBadge[user?.role ?? ""] ?? "bg-slate-100 text-slate-700"}`}
+              className={\`mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-medium \${roleBadge[user?.role ?? ""] ?? "bg-slate-100 text-slate-700"}\`}
             >
               {user?.role}
             </span>
