@@ -9,9 +9,10 @@ const roleBadge: Record<string, string> = {
 };
 
 export function DashboardPage() {
-  const { user, isArtist } = useAuth();
+  const { user, isArtist, isClient } = useAuth();
 
   if (isArtist) return <Navigate to="/commissions" replace />;
+  if (isClient) return <Navigate to="/my-commissions" replace />;
 
   return (
     <Layout>
@@ -28,7 +29,7 @@ export function DashboardPage() {
           <div>
             <p className="font-medium text-slate-900">{user?.email}</p>
             <span
-              className={\`mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-medium \${roleBadge[user?.role ?? ""] ?? "bg-slate-100 text-slate-700"}\`}
+              className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${roleBadge[user?.role ?? ""] ?? "bg-slate-100 text-slate-700"}`}
             >
               {user?.role}
             </span>

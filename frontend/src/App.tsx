@@ -11,6 +11,8 @@ import { CreateCommissionPage } from "./pages/CreateCommissionPage";
 import { ClientsPage } from "./pages/ClientsPage";
 import { CommissionTypesPage } from "./pages/CommissionTypesPage";
 import { TagsPage } from "./pages/TagsPage";
+import { ClientCommissionsListPage } from "./pages/ClientCommissionsListPage";
+import { ClientCommissionDetailPage } from "./pages/ClientCommissionDetailPage";
 
 export default function App() {
   return (
@@ -35,6 +37,12 @@ export default function App() {
             <Route path="/clients"            element={<ClientsPage />} />
             <Route path="/commission-types"   element={<CommissionTypesPage />} />
             <Route path="/tags"               element={<TagsPage />} />
+          </Route>
+
+          {/* Client-only */}
+          <Route element={<ProtectedRoute requiredRole="CLIENT" />}>
+            <Route path="/my-commissions"      element={<ClientCommissionsListPage />} />
+            <Route path="/my-commissions/:id"  element={<ClientCommissionDetailPage />} />
           </Route>
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />

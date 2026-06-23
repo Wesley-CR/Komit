@@ -13,7 +13,7 @@ const roleBadge: Record<string, string> = {
 };
 
 export function Layout({ children }: LayoutProps) {
-  const { user, logout, isArtist } = useAuth();
+  const { user, logout, isArtist, isClient } = useAuth();
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -22,14 +22,19 @@ export function Layout({ children }: LayoutProps) {
           <span className="text-lg font-semibold tracking-tight text-slate-900 mr-2">Komit</span>
 
           {/* Nav */}
-          {isArtist && (
+          {(isArtist || isClient) && (
             <nav className="flex items-center gap-1">
-              {[
-                { to: "/commissions", label: "Commissions" },
-                { to: "/clients", label: "Clients" },
-                { to: "/commission-types", label: "Types" },
-                { to: "/tags", label: "Tags" },
-              ].map((link) => (
+              {(isArtist
+                ? [
+                    { to: "/commissions", label: "Commissions" },
+                    { to: "/clients", label: "Clients" },
+                    { to: "/commission-types", label: "Types" },
+                    { to: "/tags", label: "Tags" },
+                  ]
+                : [
+                    { to: "/my-commissions", label: "My Commissions" },
+                  ]
+              ).map((link) => (
                 <NavLink
                   key={link.to}
                   to={link.to}

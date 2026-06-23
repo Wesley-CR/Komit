@@ -1,9 +1,12 @@
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 
 export function UnauthorizedPage() {
   const navigate = useNavigate();
+  const { isClient, isArtist } = useAuth();
+  const homeRoute = isClient ? "/my-commissions" : isArtist ? "/commissions" : "/dashboard";
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
@@ -29,8 +32,8 @@ export function UnauthorizedPage() {
             </p>
           </div>
 
-          <Button variant="ghost" onClick={() => navigate("/dashboard")} className="w-full">
-            Back to dashboard
+          <Button variant="ghost" onClick={() => navigate(homeRoute)} className="w-full">
+            Go back
           </Button>
         </Card>
       </div>
