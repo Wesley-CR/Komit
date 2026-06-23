@@ -1,9 +1,12 @@
 import { useEffect, useState, type FormEvent } from "react";
 import {
   createCommissionType,
+  createMilestoneTemplate,
   deleteCommissionType,
+  deleteMilestoneTemplate,
   listCommissionTypes,
   updateCommissionType,
+  updateMilestoneTemplate,
 } from "../api/commissionTypes";
 import { ApiError } from "../api/client";
 import { Layout } from "../components/Layout";
@@ -15,6 +18,11 @@ import { Modal } from "../components/ui/Modal";
 import { Spinner } from "../components/ui/Spinner";
 import { formatMoney } from "../lib/format";
 import type { CommissionType } from "../types/commissionType";
+
+interface TemplateRow {
+  existingId?: number;
+  name: string;
+}
 
 export function CommissionTypesPage() {
   const [types, setTypes]     = useState<CommissionType[]>([]);
@@ -33,6 +41,11 @@ export function CommissionTypesPage() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError]     = useState<string | null>(null);
 
+  const [tmplOpen, setTmplOpen]       = useState(false);
+  const [tmplType, setTmplType]       = useState<CommissionType | null>(null);
+  const [tmplRows, setTmplRows]       = useState<TemplateRow[]>([]);
+  const [tmplLoading, setTmplLoading] = useState(false);
+  const [tmplError, setTmplError]     = useState<string | null>(null);
 
   async function fetchTypes() {
     setError(null);
@@ -104,6 +117,58 @@ export function CommissionTypesPage() {
     }
   }
 
+  function openTemplates(t: CommissionType) {
+    setTmplType(t);
+    setTmplRows(
+      t.milestoneTemplates.map((mt) => ({ existingId: mt.id, name: mt.name }))
+    );
+    setTmplError(null);
+    setTmplOpen(true);
+  }
+
+  async function handleSaveTemplates() {
+    if (!tmplType) return;
+    const emptyName = tmplRows.find((r) => !r.name.trim());
+    if (emptyName) { setTmplError("All milestone names must be non-empty."); return; }
+
+    setTmplLoading(true);
+    setTmplError(null);
+    try {
+      const existingTemplates = tmplType.milestoneTemplates;
+      const existingIds = new Set(existingTemplates.map((t) => t.id));
+      const keptIds = new Set(tmplRows.filter((r) => r.existingId).map((r) => r.existingId));
+
+      // Delete removed templates
+      for (const tmpl of existingTemplates) {
+        if (!keptIds.has(tmpl.id)) {
+          await deleteMilestoneTemplate(tmpl.id);
+        }
+      }
+
+      // Create or update each row
+      for (let i = 0; i < tmplRows.length; i++) {
+        const row = tmplRows[i];
+        const body = { name: row.name.trim(), orderIndex: i + 1 };
+        if (row.existingId && existingIds.has(row.existingId)) {
+          await updateMilestoneTemplate(row.existingId, body);
+        } else {
+          await createMilestoneTemplate(tmplType.id, body);
+        }
+      }
+
+      setTmplOpen(false);
+      void fetchTypes();
+    } catch (err) {
+      setTmplError(err instanceof ApiError ? err.message : "Failed to save templates.");
+    } finally {
+      setTmplLoading(false);
+    }
+  }
+
+  function templateSummary(t: CommissionType): string {
+    if (t.milestoneTemplates.length === 0) return "4 defaults";
+    return t.milestoneTemplates.map((mt) => mt.name).join(" → ");
+  }
 
   return (
     <Layout>
@@ -133,7 +198,8 @@ export function CommissionTypesPage() {
                   <th className="px-4 py-3 font-medium text-slate-500">Name</th>
                   <th className="px-4 py-3 font-medium text-slate-500">Description</th>
                   <th className="px-4 py-3 font-medium text-slate-500">Base Price</th>
-                  <th className="px-4 py-3 font-medium text-slate-500 w-28" />
+                  <th className="px-4 py-3 font-medium text-slate-500">Milestones</th>
+                  <th className="px-4 py-3 font-medium text-slate-500 w-36" />
                 </tr>
               </thead>
               <tbody>
@@ -142,8 +208,17 @@ export function CommissionTypesPage() {
                     <td className="px-4 py-3 font-medium text-slate-900">{t.name}</td>
                     <td className="px-4 py-3 text-slate-500 max-w-xs truncate">{t.description ?? "—"}</td>
                     <td className="px-4 py-3 text-slate-600">{formatMoney(t.basePrice, "USD")}</td>
+                    <td className="px-4 py-3 text-slate-500 text-xs max-w-xs truncate">
+                      {templateSummary(t)}
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => openTemplates(t)}
+                          className="rounded-lg px-2 py-1 text-xs text-accent-600 hover:bg-accent-50"
+                        >
+                          Stages
+                        </button>
                         <button
                           onClick={() => openEdit(t)}
                           className="rounded-lg px-2 py-1 text-xs text-accent-600 hover:bg-accent-50"
@@ -233,6 +308,82 @@ export function CommissionTypesPage() {
         </div>
       </Modal>
 
+      {/* Milestone templates modal */}
+      <Modal
+        open={tmplOpen}
+        onClose={() => { if (!tmplLoading) setTmplOpen(false); }}
+        title={`Milestone stages — ${tmplType?.name ?? ""}`}
+      >
+        <div className="space-y-4">
+          <p className="text-xs text-slate-500">
+            Define the pipeline stages for this type. New commissions will inherit these milestones.
+            Leave empty to use the 4 defaults (Sketch → Lineart → Color → Final).
+          </p>
+
+          {tmplRows.length > 0 ? (
+            <div className="space-y-2">
+              {tmplRows.map((row, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <span className="text-xs text-slate-400 w-5 text-right shrink-0">{i + 1}</span>
+                  <Input
+                    placeholder="Stage name"
+                    value={row.name}
+                    onChange={(e) => {
+                      const updated = [...tmplRows];
+                      updated[i] = { ...updated[i], name: e.target.value };
+                      setTmplRows(updated);
+                    }}
+                    className="flex-1"
+                    disabled={tmplLoading}
+                  />
+                  {i > 0 && (
+                    <button
+                      type="button"
+                      disabled={tmplLoading}
+                      onClick={() => {
+                        const updated = [...tmplRows];
+                        [updated[i - 1], updated[i]] = [updated[i], updated[i - 1]];
+                        setTmplRows(updated);
+                      }}
+                      className="text-slate-400 hover:text-slate-600 text-sm px-1 disabled:opacity-50"
+                      title="Move up"
+                    >
+                      ↑
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    disabled={tmplLoading}
+                    onClick={() => setTmplRows(tmplRows.filter((_, j) => j !== i))}
+                    className="text-red-400 hover:text-red-600 text-sm px-1 disabled:opacity-50"
+                    title="Remove"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-slate-400 text-center py-2">No custom stages — will use 4 defaults.</p>
+          )}
+
+          <button
+            type="button"
+            disabled={tmplLoading}
+            onClick={() => setTmplRows([...tmplRows, { name: "" }])}
+            className="text-sm text-accent-600 hover:text-accent-700 disabled:opacity-50"
+          >
+            + Add stage
+          </button>
+
+          {tmplError && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{tmplError}</p>}
+
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="ghost" onClick={() => setTmplOpen(false)} disabled={tmplLoading}>Cancel</Button>
+            <Button loading={tmplLoading} onClick={() => void handleSaveTemplates()}>Save stages</Button>
+          </div>
+        </div>
+      </Modal>
     </Layout>
   );
 }

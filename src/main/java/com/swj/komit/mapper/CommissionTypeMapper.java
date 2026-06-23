@@ -3,7 +3,9 @@ package com.swj.komit.mapper;
 import com.swj.komit.dto.request.CreateCommissionTypeRequest;
 import com.swj.komit.dto.request.UpdateCommissionTypeRequest;
 import com.swj.komit.dto.response.CommissionTypeResponse;
+import com.swj.komit.dto.response.MilestoneTemplateResponse;
 import com.swj.komit.entity.CommissionType;
+import com.swj.komit.entity.MilestoneTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -26,7 +28,19 @@ public class CommissionTypeMapper {
     }
 
     public CommissionTypeResponse toResponse(CommissionType type) {
-        return new CommissionTypeResponse(type.getId(), type.getName(), type.getDescription(), type.getBasePrice());
+        List<MilestoneTemplateResponse> templates = type.getMilestoneTemplates().stream()
+                .map(this::toTemplateResponse)
+                .toList();
+        return new CommissionTypeResponse(type.getId(), type.getName(), type.getDescription(), type.getBasePrice(), templates);
+    }
+
+    public MilestoneTemplateResponse toTemplateResponse(MilestoneTemplate template) {
+        return new MilestoneTemplateResponse(
+                template.getId(),
+                template.getName(),
+                template.getOrderIndex(),
+                template.getCommissionType().getId()
+        );
     }
 
     public List<CommissionTypeResponse> toResponseList(List<CommissionType> types) {

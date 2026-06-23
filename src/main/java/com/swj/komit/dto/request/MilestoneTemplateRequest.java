@@ -3,10 +3,7 @@ package com.swj.komit.dto.request;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-import java.time.LocalDate;
-
-public record MilestoneDefinitionRequest(
+public record MilestoneTemplateRequest(
         @NotBlank String name,
-        @NotNull Integer orderIndex,
-        LocalDate dueDate
+        @NotNull Integer orderIndex
 ) {}

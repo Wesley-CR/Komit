@@ -32,4 +32,9 @@ public class CommissionType {
     @OneToMany(mappedBy = "commissionType", fetch = FetchType.LAZY)
     @Builder.Default
     private List<Commission> commissions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "commissionType", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("orderIndex ASC")
+    @Builder.Default
+    private List<MilestoneTemplate> milestoneTemplates = new ArrayList<>();
 }

@@ -6,7 +6,6 @@ import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
 
 public record CreateCommissionRequest(
         @NotBlank String title,
@@ -15,6 +14,5 @@ public record CreateCommissionRequest(
         @NotNull Long commissionTypeId,
         LocalDate deadline,
         @NotNull @Positive BigDecimal agreedPrice,
-        String currency,
-        List<MilestoneDefinitionRequest> milestones
+        String currency
 ) {}

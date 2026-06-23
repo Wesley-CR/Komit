@@ -41,6 +41,11 @@ export function CreateCommissionPage() {
       .finally(() => setOptionsLoading(false));
   }, []);
 
+  const selectedType = types.find((t) => t.id === commissionTypeId);
+  const templateHint = selectedType?.milestoneTemplates?.length
+    ? selectedType.milestoneTemplates.map((t) => t.name).join(" → ")
+    : "Sketch → Lineart → Color → Final (defaults)";
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setSubmitError(null);
@@ -86,7 +91,7 @@ export function CreateCommissionPage() {
           </button>
           <h1 className="text-xl font-semibold text-slate-900">New Commission</h1>
           <p className="mt-1 text-sm text-slate-500">
-            4 milestones (Sketch → Lineart → Color → Final) are auto-created on submit.
+            Milestones are generated from the selected type's template.
           </p>
         </div>
 
@@ -154,7 +159,11 @@ export function CreateCommissionPage() {
                     </option>
                   ))}
                 </select>
-
+                {commissionTypeId && (
+                  <p className="text-xs text-slate-400 mt-1">
+                    Milestones: {templateHint}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">

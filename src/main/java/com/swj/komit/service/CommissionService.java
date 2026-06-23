@@ -98,24 +98,25 @@ public class CommissionService {
                 .build();
 
         commission = commissionRepository.save(commission);
-        buildMilestones(commission, req);
+        buildMilestones(commission, commissionType);
         return commissionMapper.toResponse(commissionRepository.save(commission));
     }
 
-    private void buildMilestones(Commission commission, CreateCommissionRequest req) {
+    private void buildMilestones(Commission commission, CommissionType commissionType) {
         List<Milestone> milestones = commission.getMilestones();
-        if (req.milestones() != null && !req.milestones().isEmpty()) {
-            for (var def : req.milestones()) {
+        var templates = commissionType.getMilestoneTemplates();
+        if (templates != null && !templates.isEmpty()) {
+            for (var tmpl : templates) {
                 milestones.add(Milestone.builder()
                         .commission(commission)
-                        .name(def.name())
-                        .orderIndex(def.orderIndex())
-                        .dueDate(def.dueDate())
+                        .name(tmpl.getName())
+                        .orderIndex(tmpl.getOrderIndex())
                         .status(MilestoneStatus.PENDING)
                         .revisions(new ArrayList<>())
                         .build());
             }
         } else {
+            // Fallback: types with no templates get the classic 4-stage pipeline
             for (int i = 0; i < DEFAULT_MILESTONE_NAMES.length; i++) {
                 milestones.add(Milestone.builder()
                         .commission(commission)
