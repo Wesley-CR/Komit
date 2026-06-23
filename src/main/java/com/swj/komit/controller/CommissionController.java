@@ -2,6 +2,7 @@ package com.swj.komit.controller;
 
 import com.swj.komit.dto.request.AssignTagRequest;
 import com.swj.komit.dto.request.CancelCommissionRequest;
+import com.swj.komit.dto.request.CompleteCommissionRequest;
 import com.swj.komit.dto.request.CreateCommissionRequest;
 import com.swj.komit.dto.request.UpdateCommissionRequest;
 import com.swj.komit.dto.response.BalanceResponse;
@@ -67,6 +68,13 @@ public class CommissionController {
     public ResponseEntity<CommissionResponse> cancel(@PathVariable Long id,
                                                      @RequestBody(required = false) CancelCommissionRequest req) {
         return ResponseEntity.ok(commissionService.cancel(id, req));
+    }
+
+    @PostMapping("/{id}/complete")
+    @PreAuthorize("hasRole('ARTIST')")
+    public ResponseEntity<CommissionResponse> complete(@PathVariable Long id,
+                                                       @RequestBody(required = false) CompleteCommissionRequest req) {
+        return ResponseEntity.ok(commissionService.complete(id, req));
     }
 
     @GetMapping("/{id}/balance")

@@ -43,6 +43,7 @@ public class CommissionMapper {
                 commission.getCreatedAt(),
                 commission.getUpdatedAt(),
                 commission.getCancelledAt(),
+                commission.getCompletedAt(),
                 commission.getCancellationReason(),
                 milestoneMapper.toResponseList(commission.getMilestones()),
                 paymentMapper.toResponseList(commission.getPayments()),

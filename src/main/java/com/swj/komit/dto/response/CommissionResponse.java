@@ -22,6 +22,7 @@ public record CommissionResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
         LocalDateTime cancelledAt,
+        LocalDateTime completedAt,
         String cancellationReason,
         List<MilestoneResponse> milestones,
         List<PaymentResponse> payments,

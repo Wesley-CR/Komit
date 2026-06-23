@@ -4,7 +4,6 @@ import com.swj.komit.dto.response.ErrorResponse;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
@@ -13,13 +12,13 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex) {
@@ -69,12 +68,27 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleDataIntegrity(DataIntegrityViolationException ex) {
-        ErrorResponse error = new ErrorResponse(
-                "Conflict",
-                "A resource with the provided unique field already exists",
-                LocalDateTime.now(),
-                null
-        );
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+        String sqlState = extractSqlState(ex);
+        String message = switch (sqlState == null ? "" : sqlState) {
+            case "23503" -> "This action conflicts with existing data: the resource is still referenced by other records.";
+            case "23505" -> "A resource with this value already exists.";
+            case "23502" -> "A required field is missing.";
+            default      -> "The operation violates a data integrity constraint.";
+        };
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse("Conflict", message, LocalDateTime.now(), null));
+    }
+
+    private String extractSqlState(DataIntegrityViolationException ex) {
+        Throwable cause = ex.getMostSpecificCause();
+        if (cause instanceof SQLException sql) {
+            return sql.getSQLState();
+        }
+        for (Throwable t = ex.getCause(); t != null; t = t.getCause()) {
+            if (t instanceof SQLException sql) {
+                return sql.getSQLState();
+            }
+        }
+        return null;
     }
 }

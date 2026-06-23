@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { cancelCommission, getBalance, getCommission } from "../api/commissions";
+import { cancelCommission, completeCommission, getBalance, getCommission } from "../api/commissions";
 import { assignTag, createTag, listTags, unassignTag } from "../api/tags";
 import { ApiError } from "../api/client";
 import { Layout } from "../components/Layout";
 import { Button } from "../components/ui/Button";
+import { Input } from "../components/ui/Input";
 import { Modal } from "../components/ui/Modal";
 import { Spinner } from "../components/ui/Spinner";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { MilestoneCard } from "../components/commission/MilestoneCard";
 import { PaymentSection } from "../components/commission/PaymentSection";
 import { formatDate, formatMoney } from "../lib/format";
-import { Input } from "../components/ui/Input";
 import type { Balance, CommissionDetail } from "../types/commission";
 import type { Tag } from "../types/tag";
 
@@ -30,12 +30,14 @@ export function CommissionDetailPage() {
   const [cancelLoading, setCancelLoading] = useState(false);
   const [cancelError, setCancelError]     = useState<string | null>(null);
 
+  const [completeLoading, setCompleteLoading]   = useState(false);
+  const [completeWarning, setCompleteWarning]   = useState<string | null>(null);
+  const [completeModalOpen, setCompleteModalOpen] = useState(false);
+
   const [allTags, setAllTags]         = useState<Tag[]>([]);
   const [tagLoading, setTagLoading]   = useState(false);
   const [newTagName, setNewTagName]   = useState("");
   const [tagError, setTagError]       = useState<string | null>(null);
-
-
 
   const fetchAll = useCallback(async () => {
     setError(null);
@@ -75,6 +77,22 @@ export function CommissionDetailPage() {
     }
   }
 
+  async function handleComplete(force: boolean) {
+    setCompleteLoading(true);
+    try {
+      await completeCommission(commissionId, force);
+      setCompleteModalOpen(false);
+      setCompleteWarning(null);
+      void fetchAll();
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 409 && !force) {
+        setCompleteWarning(err.message);
+        setCompleteModalOpen(true);
+      }
+    } finally {
+      setCompleteLoading(false);
+    }
+  }
 
   async function handleAssignTag(tagId: number) {
     setTagLoading(true);
@@ -197,7 +215,14 @@ export function CommissionDetailPage() {
             </div>
 
             {!isTerminal && (
-              <div className="shrink-0">
+              <div className="shrink-0 flex items-center gap-2">
+                <Button
+                  className="text-sm h-8 px-3"
+                  loading={completeLoading}
+                  onClick={() => void handleComplete(false)}
+                >
+                  Mark as completed
+                </Button>
                 <Button
                   variant="ghost"
                   className="text-red-600 hover:bg-red-50 text-sm h-8 px-3"
@@ -398,52 +423,6 @@ export function CommissionDetailPage() {
           </div>
         </div>
       </Modal>
-
-      {/* Cancel modal */}
-      <Modal
-        open={cancelOpen}
-        onClose={() => { if (!cancelLoading) setCancelOpen(false); }}
-        title="Cancel commission"
-      >
-        <div className="space-y-4">
-          <p className="text-sm text-slate-600">
-            Pending and in-progress milestones will be cancelled. Completed milestones are preserved.
-          </p>
-          <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-slate-700">
-              Reason (optional)
-            </label>
-            <textarea
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 resize-none"
-              rows={3}
-              placeholder="Client changed their mind…"
-              value={cancelReason}
-              onChange={(e) => setCancelReason(e.target.value)}
-            />
-          </div>
-          {cancelError && <p className="text-sm text-red-500">{cancelError}</p>}
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="ghost"
-              onClick={() => setCancelOpen(false)}
-              disabled={cancelLoading}
-            >
-              Go back
-            </Button>
-            <Button
-              className="bg-red-600 hover:bg-red-700 active:bg-red-800"
-              loading={cancelLoading}
-              onClick={() => void handleCancel()}
-            >
-              Cancel commission
-            </Button>
-          </div>
-        </div>
-      </Modal>
-    </Layout>
-  );
-}
-      </div>
 
       {/* Cancel modal */}
       <Modal

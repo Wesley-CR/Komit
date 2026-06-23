@@ -27,6 +27,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import com.swj.komit.dto.request.CompleteCommissionRequest;
 
 @Service
 @Transactional
@@ -150,6 +153,42 @@ public class CommissionService {
                 m.setStatus(MilestoneStatus.CANCELLED);
             }
         });
+        return commissionMapper.toResponse(commissionRepository.save(commission));
+    }
+
+    public CommissionResponse complete(Long id, CompleteCommissionRequest req) {
+        Commission commission = getCommissionOrThrow(id);
+        if (commission.getStatus() == CommissionStatus.COMPLETED || commission.getStatus() == CommissionStatus.CANCELLED) {
+            throw new BusinessRuleException("Commission is already " + commission.getStatus());
+        }
+
+        boolean force = req != null && Boolean.TRUE.equals(req.force());
+
+        List<String> warnings = new ArrayList<>();
+
+        List<Milestone> incompleteMilestones = commission.getMilestones().stream()
+                .filter(m -> m.getStatus() != MilestoneStatus.COMPLETED && m.getStatus() != MilestoneStatus.CANCELLED)
+                .toList();
+        if (!incompleteMilestones.isEmpty()) {
+            warnings.add(incompleteMilestones.size() + " incomplete milestone(s)");
+        }
+
+        BigDecimal totalPaid = commission.getPayments().stream()
+                .map(p -> p.getAmount())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal outstanding = commission.getAgreedPrice().subtract(totalPaid);
+        if (outstanding.compareTo(BigDecimal.ZERO) > 0) {
+            warnings.add("outstanding balance of " + commission.getCurrency() + " " + outstanding.toPlainString());
+        }
+
+        if (!warnings.isEmpty() && !force) {
+            String msg = "Commission has " + warnings.stream().collect(Collectors.joining(" and "))
+                    + ". Use force=true to override.";
+            throw new BusinessRuleException(msg);
+        }
+
+        commission.setStatus(CommissionStatus.COMPLETED);
+        commission.setCompletedAt(LocalDateTime.now());
         return commissionMapper.toResponse(commissionRepository.save(commission));
     }
 

@@ -52,6 +52,7 @@ public class Commission {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime cancelledAt;
+    private LocalDateTime completedAt;
 
     @Column(columnDefinition = "TEXT")
     private String cancellationReason;
