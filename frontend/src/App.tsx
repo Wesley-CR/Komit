@@ -8,6 +8,9 @@ import { UnauthorizedPage } from "./pages/UnauthorizedPage";
 import { CommissionsListPage } from "./pages/CommissionsListPage";
 import { CommissionDetailPage } from "./pages/CommissionDetailPage";
 import { CreateCommissionPage } from "./pages/CreateCommissionPage";
+import { ClientsPage } from "./pages/ClientsPage";
+import { CommissionTypesPage } from "./pages/CommissionTypesPage";
+import { TagsPage } from "./pages/TagsPage";
 
 export default function App() {
   return (
@@ -26,9 +29,12 @@ export default function App() {
 
           {/* Artist-only */}
           <Route element={<ProtectedRoute requiredRole="ARTIST" />}>
-            <Route path="/commissions"      element={<CommissionsListPage />} />
-            <Route path="/commissions/new"  element={<CreateCommissionPage />} />
-            <Route path="/commissions/:id"  element={<CommissionDetailPage />} />
+            <Route path="/commissions"        element={<CommissionsListPage />} />
+            <Route path="/commissions/new"    element={<CreateCommissionPage />} />
+            <Route path="/commissions/:id"    element={<CommissionDetailPage />} />
+            <Route path="/clients"            element={<ClientsPage />} />
+            <Route path="/commission-types"   element={<CommissionTypesPage />} />
+            <Route path="/tags"               element={<TagsPage />} />
           </Route>
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />

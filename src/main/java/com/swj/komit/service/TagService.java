@@ -33,8 +33,12 @@ public class TagService {
     }
 
     public void delete(Long id) {
-        getTagOrThrow(id);
-        tagRepository.deleteById(id);
+        Tag tag = getTagOrThrow(id);
+        for (var commission : tag.getCommissions()) {
+            commission.getTags().remove(tag);
+        }
+        tag.getCommissions().clear();
+        tagRepository.delete(tag);
     }
 
     Tag getTagOrThrow(Long id) {

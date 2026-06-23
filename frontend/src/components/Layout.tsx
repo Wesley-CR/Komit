@@ -24,18 +24,26 @@ export function Layout({ children }: LayoutProps) {
           {/* Nav */}
           {isArtist && (
             <nav className="flex items-center gap-1">
-              <NavLink
-                to="/commissions"
-                className={({ isActive }) =>
-                  \`rounded-lg px-3 py-1.5 text-sm transition-colors \${
-                    isActive
-                      ? "bg-accent-50 text-accent-700 font-medium"
-                      : "text-slate-600 hover:bg-slate-100"
-                  }\`
-                }
-              >
-                Commissions
-              </NavLink>
+              {[
+                { to: "/commissions", label: "Commissions" },
+                { to: "/clients", label: "Clients" },
+                { to: "/commission-types", label: "Types" },
+                { to: "/tags", label: "Tags" },
+              ].map((link) => (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  className={({ isActive }) =>
+                    `rounded-lg px-3 py-1.5 text-sm transition-colors ${
+                      isActive
+                        ? "bg-accent-50 text-accent-700 font-medium"
+                        : "text-slate-600 hover:bg-slate-100"
+                    }`
+                  }
+                >
+                  {link.label}
+                </NavLink>
+              ))}
             </nav>
           )}
 
@@ -44,7 +52,7 @@ export function Layout({ children }: LayoutProps) {
             <div className="ml-auto flex items-center gap-3">
               <span className="text-sm text-slate-500 hidden sm:block">{user.email}</span>
               <span
-                className={\`rounded-full px-2.5 py-0.5 text-xs font-medium \${roleBadge[user.role] ?? "bg-slate-100 text-slate-700"}\`}
+                className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${roleBadge[user.role] ?? "bg-slate-100 text-slate-700"}`}
               >
                 {user.role}
               </span>
