@@ -16,6 +16,7 @@ import com.swj.komit.exception.BusinessRuleException;
 import com.swj.komit.exception.ResourceNotFoundException;
 import com.swj.komit.mapper.CommissionMapper;
 import com.swj.komit.repository.CommissionRepository;
+import com.swj.komit.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -42,14 +43,20 @@ public class CommissionService {
     private final CommissionTypeService commissionTypeService;
     private final TagService tagService;
     private final CommissionMapper commissionMapper;
+    private final SecurityUtils securityUtils;
 
     @Transactional(readOnly = true)
     public List<CommissionSummaryResponse> getCommissions(CommissionStatus status, Long clientId,
                                                           LocalDate deadlineBefore, Long tagId) {
+        // CLIENT callers are force-filtered to their own clientId regardless of query params
+        if (!securityUtils.isArtist()) {
+            clientId = securityUtils.getCurrentClientId();
+        }
+        final Long effectiveClientId = clientId;
         List<Commission> all = commissionRepository.findAll();
         return all.stream()
                 .filter(c -> status == null || c.getStatus() == status)
-                .filter(c -> clientId == null || c.getClient().getId().equals(clientId))
+                .filter(c -> effectiveClientId == null || c.getClient().getId().equals(effectiveClientId))
                 .filter(c -> deadlineBefore == null || (c.getDeadline() != null && c.getDeadline().isBefore(deadlineBefore)))
                 .filter(c -> tagId == null || c.getTags().stream().anyMatch(t -> t.getId().equals(tagId)))
                 .map(commissionMapper::toSummaryResponse)
@@ -58,7 +65,9 @@ public class CommissionService {
 
     @Transactional(readOnly = true)
     public CommissionResponse findById(Long id) {
-        return commissionMapper.toResponse(getCommissionOrThrow(id));
+        Commission commission = getCommissionOrThrow(id);
+        securityUtils.assertCommissionAccess(commission);
+        return commissionMapper.toResponse(commission);
     }
 
     @Transactional(readOnly = true)
@@ -147,6 +156,7 @@ public class CommissionService {
     @Transactional(readOnly = true)
     public BalanceResponse getBalance(Long id) {
         Commission commission = getCommissionOrThrow(id);
+        securityUtils.assertCommissionAccess(commission);
         BigDecimal totalPaid = commission.getPayments().stream()
                 .map(p -> p.getAmount())
                 .reduce(BigDecimal.ZERO, BigDecimal::add);

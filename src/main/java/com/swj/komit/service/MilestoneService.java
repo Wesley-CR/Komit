@@ -13,6 +13,7 @@ import com.swj.komit.exception.BusinessRuleException;
 import com.swj.komit.exception.ResourceNotFoundException;
 import com.swj.komit.mapper.MilestoneMapper;
 import com.swj.komit.repository.MilestoneRepository;
+import com.swj.komit.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,10 +33,12 @@ public class MilestoneService {
     private final MilestoneRepository milestoneRepository;
     private final CommissionService commissionService;
     private final MilestoneMapper milestoneMapper;
+    private final SecurityUtils securityUtils;
 
     @Transactional(readOnly = true)
     public List<MilestoneResponse> findByCommissionId(Long commissionId) {
-        commissionService.getCommissionOrThrow(commissionId);
+        Commission commission = commissionService.getCommissionOrThrow(commissionId);
+        securityUtils.assertCommissionAccess(commission);
         return milestoneMapper.toResponseList(milestoneRepository.findByCommissionId(commissionId));
     }
 

@@ -7,6 +7,7 @@ import com.swj.komit.service.CommissionTypeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -30,18 +31,21 @@ public class CommissionTypeController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ARTIST')")
     public ResponseEntity<CommissionTypeResponse> create(@Valid @RequestBody CreateCommissionTypeRequest req) {
         CommissionTypeResponse response = commissionTypeService.create(req);
         return ResponseEntity.created(URI.create("/api/commission-types/" + response.id())).body(response);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ARTIST')")
     public ResponseEntity<CommissionTypeResponse> update(@PathVariable Long id,
                                                          @Valid @RequestBody UpdateCommissionTypeRequest req) {
         return ResponseEntity.ok(commissionTypeService.update(id, req));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ARTIST')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         commissionTypeService.delete(id);
         return ResponseEntity.noContent().build();

@@ -9,6 +9,7 @@ import com.swj.komit.exception.BusinessRuleException;
 import com.swj.komit.exception.ResourceNotFoundException;
 import com.swj.komit.mapper.RevisionMapper;
 import com.swj.komit.repository.RevisionRepository;
+import com.swj.komit.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,10 +27,12 @@ public class RevisionService {
     private final RevisionRepository revisionRepository;
     private final MilestoneService milestoneService;
     private final RevisionMapper revisionMapper;
+    private final SecurityUtils securityUtils;
 
     @Transactional(readOnly = true)
     public List<RevisionResponse> findByMilestoneId(Long milestoneId) {
-        milestoneService.getMilestoneOrThrow(milestoneId);
+        Milestone milestone = milestoneService.getMilestoneOrThrow(milestoneId);
+        securityUtils.assertCommissionAccess(milestone.getCommission());
         return revisionMapper.toResponseList(revisionRepository.findByMilestoneId(milestoneId));
     }
 
@@ -40,6 +43,7 @@ public class RevisionService {
 
     public RevisionResponse create(Long milestoneId, CreateRevisionRequest req) {
         Milestone milestone = milestoneService.getMilestoneOrThrow(milestoneId);
+        securityUtils.assertCommissionAccess(milestone.getCommission());
         int nextRound = revisionRepository.findTopByMilestoneIdOrderByRoundNumberDesc(milestoneId)
                 .map(r -> r.getRoundNumber() + 1)
                 .orElse(1);

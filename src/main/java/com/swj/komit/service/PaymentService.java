@@ -7,6 +7,7 @@ import com.swj.komit.entity.Payment;
 import com.swj.komit.exception.ResourceNotFoundException;
 import com.swj.komit.mapper.PaymentMapper;
 import com.swj.komit.repository.PaymentRepository;
+import com.swj.komit.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,10 +24,12 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final CommissionService commissionService;
     private final PaymentMapper paymentMapper;
+    private final SecurityUtils securityUtils;
 
     @Transactional(readOnly = true)
     public List<PaymentResponse> findByCommissionId(Long commissionId) {
-        commissionService.getCommissionOrThrow(commissionId);
+        Commission commission = commissionService.getCommissionOrThrow(commissionId);
+        securityUtils.assertCommissionAccess(commission);
         return paymentMapper.toResponseList(paymentRepository.findByCommissionId(commissionId));
     }
 

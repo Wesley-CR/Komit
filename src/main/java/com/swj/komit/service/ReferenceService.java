@@ -7,6 +7,7 @@ import com.swj.komit.entity.Reference;
 import com.swj.komit.exception.ResourceNotFoundException;
 import com.swj.komit.mapper.ReferenceMapper;
 import com.swj.komit.repository.ReferenceRepository;
+import com.swj.komit.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,10 +24,12 @@ public class ReferenceService {
     private final ReferenceRepository referenceRepository;
     private final CommissionService commissionService;
     private final ReferenceMapper referenceMapper;
+    private final SecurityUtils securityUtils;
 
     @Transactional(readOnly = true)
     public List<ReferenceResponse> findByCommissionId(Long commissionId) {
-        commissionService.getCommissionOrThrow(commissionId);
+        Commission commission = commissionService.getCommissionOrThrow(commissionId);
+        securityUtils.assertCommissionAccess(commission);
         return referenceMapper.toResponseList(referenceRepository.findByCommissionId(commissionId));
     }
 

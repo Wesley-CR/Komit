@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -41,24 +42,28 @@ public class CommissionController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ARTIST')")
     public ResponseEntity<CommissionResponse> create(@Valid @RequestBody CreateCommissionRequest req) {
         CommissionResponse response = commissionService.create(req);
         return ResponseEntity.created(URI.create("/api/commissions/" + response.id())).body(response);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ARTIST')")
     public ResponseEntity<CommissionResponse> update(@PathVariable Long id,
                                                      @Valid @RequestBody UpdateCommissionRequest req) {
         return ResponseEntity.ok(commissionService.update(id, req));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ARTIST')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         commissionService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/cancel")
+    @PreAuthorize("hasRole('ARTIST')")
     public ResponseEntity<CommissionResponse> cancel(@PathVariable Long id,
                                                      @RequestBody(required = false) CancelCommissionRequest req) {
         return ResponseEntity.ok(commissionService.cancel(id, req));
@@ -70,12 +75,14 @@ public class CommissionController {
     }
 
     @PostMapping("/{commissionId}/tags")
+    @PreAuthorize("hasRole('ARTIST')")
     public ResponseEntity<CommissionResponse> assignTag(@PathVariable Long commissionId,
                                                         @Valid @RequestBody AssignTagRequest req) {
         return ResponseEntity.ok(commissionService.assignTag(commissionId, req.tagId()));
     }
 
     @DeleteMapping("/{commissionId}/tags/{tagId}")
+    @PreAuthorize("hasRole('ARTIST')")
     public ResponseEntity<Void> removeTag(@PathVariable Long commissionId, @PathVariable Long tagId) {
         commissionService.removeTag(commissionId, tagId);
         return ResponseEntity.noContent().build();

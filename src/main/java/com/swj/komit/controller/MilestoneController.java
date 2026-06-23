@@ -8,6 +8,7 @@ import com.swj.komit.service.MilestoneService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -25,6 +26,7 @@ public class MilestoneController {
     }
 
     @PostMapping("/api/commissions/{commissionId}/milestones")
+    @PreAuthorize("hasRole('ARTIST')")
     public ResponseEntity<MilestoneResponse> create(@PathVariable Long commissionId,
                                                     @Valid @RequestBody CreateMilestoneRequest req) {
         MilestoneResponse response = milestoneService.create(commissionId, req);
@@ -32,18 +34,21 @@ public class MilestoneController {
     }
 
     @PutMapping("/api/milestones/{id}")
+    @PreAuthorize("hasRole('ARTIST')")
     public ResponseEntity<MilestoneResponse> update(@PathVariable Long id,
                                                     @Valid @RequestBody UpdateMilestoneRequest req) {
         return ResponseEntity.ok(milestoneService.update(id, req));
     }
 
     @DeleteMapping("/api/milestones/{id}")
+    @PreAuthorize("hasRole('ARTIST')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         milestoneService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/api/milestones/{id}/complete")
+    @PreAuthorize("hasRole('ARTIST')")
     public ResponseEntity<MilestoneResponse> complete(@PathVariable Long id,
                                                       @Valid @RequestBody CompleteMilestoneRequest req) {
         return ResponseEntity.ok(milestoneService.complete(id, req));

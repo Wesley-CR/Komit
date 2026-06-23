@@ -6,6 +6,7 @@ import com.swj.komit.service.ReferenceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -23,6 +24,7 @@ public class ReferenceController {
     }
 
     @PostMapping("/api/commissions/{commissionId}/references")
+    @PreAuthorize("hasRole('ARTIST')")
     public ResponseEntity<ReferenceResponse> create(@PathVariable Long commissionId,
                                                     @Valid @RequestBody CreateReferenceRequest req) {
         ReferenceResponse response = referenceService.create(commissionId, req);
@@ -30,6 +32,7 @@ public class ReferenceController {
     }
 
     @DeleteMapping("/api/references/{id}")
+    @PreAuthorize("hasRole('ARTIST')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         referenceService.delete(id);
         return ResponseEntity.noContent().build();

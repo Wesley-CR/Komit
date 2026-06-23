@@ -6,6 +6,7 @@ import com.swj.komit.service.RevisionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -35,16 +36,19 @@ public class RevisionController {
     }
 
     @PostMapping("/api/revisions/{id}/address")
+    @PreAuthorize("hasRole('ARTIST')")
     public ResponseEntity<RevisionResponse> address(@PathVariable Long id) {
         return ResponseEntity.ok(revisionService.address(id));
     }
 
     @PostMapping("/api/revisions/{id}/reject")
+    @PreAuthorize("hasRole('ARTIST')")
     public ResponseEntity<RevisionResponse> reject(@PathVariable Long id) {
         return ResponseEntity.ok(revisionService.reject(id));
     }
 
     @DeleteMapping("/api/revisions/{id}")
+    @PreAuthorize("hasRole('ARTIST')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         revisionService.delete(id);
         return ResponseEntity.noContent().build();

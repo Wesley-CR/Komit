@@ -6,6 +6,7 @@ import com.swj.komit.service.TagService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -24,12 +25,14 @@ public class TagController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ARTIST')")
     public ResponseEntity<TagResponse> create(@Valid @RequestBody CreateTagRequest req) {
         TagResponse response = tagService.create(req);
         return ResponseEntity.created(URI.create("/api/tags/" + response.id())).body(response);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ARTIST')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         tagService.delete(id);
         return ResponseEntity.noContent().build();
