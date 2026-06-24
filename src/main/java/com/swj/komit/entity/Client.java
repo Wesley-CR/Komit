@@ -28,6 +28,9 @@ public class Client {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
+    @Column(unique = true)
+    private String invitationToken;
+
     @OneToMany(mappedBy = "client", fetch = FetchType.LAZY)
     @Builder.Default
     private List<Commission> commissions = new ArrayList<>();

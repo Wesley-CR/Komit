@@ -13,9 +13,16 @@ export function signup(
   password: string,
   name: string,
   contact: string,
+  invitationToken?: string,
 ): Promise<AuthResponse> {
   return apiFetch<AuthResponse>("/api/auth/signup", {
     method: "POST",
-    body: JSON.stringify({ email, password, name, contact }),
+    body: JSON.stringify({
+      email,
+      password,
+      name,
+      contact,
+      invitationToken: invitationToken || null,
+    }),
   });
 }

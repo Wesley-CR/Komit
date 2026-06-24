@@ -35,10 +35,24 @@ public class AuthController {
             throw new BusinessRuleException("Email already registered: " + req.email());
         }
 
-        Client client = clientRepository.save(Client.builder()
-                .name(req.name())
-                .contact(req.contact())
-                .build());
+        Client client;
+
+        if (req.invitationToken() != null && !req.invitationToken().isBlank()) {
+            client = clientRepository.findByInvitationToken(req.invitationToken())
+                    .orElseThrow(() -> new BusinessRuleException("Invalid or already-used invitation code."));
+
+            if (userRepository.existsByClientId(client.getId())) {
+                throw new BusinessRuleException("Invalid or already-used invitation code.");
+            }
+
+            client.setInvitationToken(null);
+            clientRepository.save(client);
+        } else {
+            client = clientRepository.save(Client.builder()
+                    .name(req.name())
+                    .contact(req.contact())
+                    .build());
+        }
 
         User user = userRepository.save(User.builder()
                 .email(req.email())

@@ -27,6 +27,8 @@ export function ClientsPage() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError]     = useState<string | null>(null);
 
+  const [copiedId, setCopiedId] = useState<number | null>(null);
+
   async function fetchClients() {
     setError(null);
     try {
@@ -96,6 +98,14 @@ export function ClientsPage() {
     }
   }
 
+  async function copyInviteLink(c: Client) {
+    if (!c.invitationToken) return;
+    const link = `${window.location.origin}/signup?invite=${c.invitationToken}`;
+    await navigator.clipboard.writeText(link);
+    setCopiedId(c.id);
+    setTimeout(() => setCopiedId((prev) => (prev === c.id ? null : prev)), 2000);
+  }
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -124,6 +134,7 @@ export function ClientsPage() {
                   <th className="px-4 py-3 font-medium text-slate-500">Name</th>
                   <th className="px-4 py-3 font-medium text-slate-500">Contact</th>
                   <th className="px-4 py-3 font-medium text-slate-500">Notes</th>
+                  <th className="px-4 py-3 font-medium text-slate-500">Status</th>
                   <th className="px-4 py-3 font-medium text-slate-500 w-28" />
                 </tr>
               </thead>
@@ -133,6 +144,22 @@ export function ClientsPage() {
                     <td className="px-4 py-3 font-medium text-slate-900">{c.name}</td>
                     <td className="px-4 py-3 text-slate-600">{c.contact}</td>
                     <td className="px-4 py-3 text-slate-500 max-w-xs truncate">{c.notes ?? "—"}</td>
+                    <td className="px-4 py-3">
+                      {c.claimed ? (
+                        <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
+                          Claimed
+                        </span>
+                      ) : c.invitationToken ? (
+                        <button
+                          onClick={() => void copyInviteLink(c)}
+                          className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-accent-600 hover:bg-accent-50"
+                        >
+                          {copiedId === c.id ? "Copied!" : "Copy invite link"}
+                        </button>
+                      ) : (
+                        <span className="text-xs text-slate-400">—</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
                         <button

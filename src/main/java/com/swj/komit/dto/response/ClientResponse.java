@@ -4,5 +4,7 @@ public record ClientResponse(
         Long id,
         String name,
         String contact,
-        String notes
+        String notes,
+        String invitationToken,
+        boolean claimed
 ) {}

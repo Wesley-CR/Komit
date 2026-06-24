@@ -13,4 +13,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.client WHERE u.email = :email")
     Optional<User> findByEmailWithClient(@Param("email") String email);
+
+    boolean existsByClientId(Long clientId);
+
+    @Query("SELECT u.client.id FROM User u WHERE u.client IS NOT NULL")
+    java.util.Set<Long> findAllClaimedClientIds();
 }

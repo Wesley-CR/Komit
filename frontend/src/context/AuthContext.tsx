@@ -24,7 +24,7 @@ interface AuthContextValue {
   isArtist: boolean;
   isClient: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, name: string, contact: string) => Promise<void>;
+  signup: (email: string, password: string, name: string, contact: string, invitationToken?: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -79,8 +79,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     persistAuth(res.token, { email: res.email, role: res.role, userId: res.userId, clientId: res.clientId });
   }, []);
 
-  const signup = useCallback(async (email: string, password: string, name: string, contact: string) => {
-    const res = await authApi.signup(email, password, name, contact);
+  const signup = useCallback(async (email: string, password: string, name: string, contact: string, invitationToken?: string) => {
+    const res = await authApi.signup(email, password, name, contact, invitationToken);
     persistAuth(res.token, { email: res.email, role: res.role, userId: res.userId, clientId: res.clientId });
   }, []);
 

@@ -7,12 +7,15 @@ import com.swj.komit.entity.Client;
 import com.swj.komit.exception.ResourceNotFoundException;
 import com.swj.komit.mapper.ClientMapper;
 import com.swj.komit.repository.ClientRepository;
+import com.swj.komit.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -21,27 +24,35 @@ import java.util.List;
 public class ClientService {
 
     private final ClientRepository clientRepository;
+    private final UserRepository userRepository;
     private final ClientMapper clientMapper;
 
     @Transactional(readOnly = true)
     public List<ClientResponse> findAll() {
-        return clientMapper.toResponseList(clientRepository.findAll());
+        List<Client> clients = clientRepository.findAll();
+        Set<Long> claimedIds = userRepository.findAllClaimedClientIds();
+        return clientMapper.toResponseList(clients, claimedIds);
     }
 
     @Transactional(readOnly = true)
     public ClientResponse findById(Long id) {
-        return clientMapper.toResponse(getClientOrThrow(id));
+        Client client = getClientOrThrow(id);
+        boolean claimed = userRepository.existsByClientId(id);
+        return clientMapper.toResponse(client, claimed);
     }
 
     public ClientResponse create(CreateClientRequest req) {
         Client client = clientMapper.toEntity(req);
-        return clientMapper.toResponse(clientRepository.save(client));
+        client.setInvitationToken(UUID.randomUUID().toString());
+        Client saved = clientRepository.save(client);
+        return clientMapper.toResponse(saved, false);
     }
 
     public ClientResponse update(Long id, UpdateClientRequest req) {
         Client client = getClientOrThrow(id);
         clientMapper.updateEntity(client, req);
-        return clientMapper.toResponse(clientRepository.save(client));
+        boolean claimed = userRepository.existsByClientId(id);
+        return clientMapper.toResponse(clientRepository.save(client), claimed);
     }
 
     public void delete(Long id) {

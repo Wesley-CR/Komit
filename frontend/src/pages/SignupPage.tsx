@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { ApiError } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "../components/ui/Button";
@@ -10,12 +10,15 @@ import { Label } from "../components/ui/Label";
 export function SignupPage() {
   const { signup, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
   const [name, setName]         = useState("");
   const [contact, setContact]   = useState("");
+  const [inviteCode, setInviteCode] = useState(searchParams.get("invite") ?? "");
   const [error, setError]       = useState<string | null>(null);
+  const [inviteError, setInviteError] = useState<string | null>(null);
   const [loading, setLoading]   = useState(false);
 
   if (isAuthenticated) return <Navigate to="/dashboard" replace />;
@@ -23,6 +26,7 @@ export function SignupPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setInviteError(null);
 
     if (password.length < 8) {
       setError("Password must be at least 8 characters.");
@@ -31,11 +35,15 @@ export function SignupPage() {
 
     setLoading(true);
     try {
-      await signup(email, password, name, contact);
+      await signup(email, password, name, contact, inviteCode || undefined);
       navigate("/dashboard", { replace: true });
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
-        setError("An account with this email already exists.");
+        if (err.message.toLowerCase().includes("invitation")) {
+          setInviteError(err.message);
+        } else {
+          setError("An account with this email already exists.");
+        }
       } else {
         setError("Something went wrong. Please try again.");
       }
@@ -102,6 +110,23 @@ export function SignupPage() {
                 value={contact}
                 onChange={(e) => setContact(e.target.value)}
               />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="invite-code">
+                <span>Invitation code</span>
+                <span className="ml-1.5 text-xs font-normal text-slate-400">(optional)</span>
+              </Label>
+              <Input
+                id="invite-code"
+                type="text"
+                placeholder="Paste code from your artist"
+                value={inviteCode}
+                onChange={(e) => setInviteCode(e.target.value)}
+              />
+              {inviteError && (
+                <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{inviteError}</p>
+              )}
             </div>
 
             {error && (

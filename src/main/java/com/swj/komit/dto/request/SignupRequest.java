@@ -8,5 +8,6 @@ public record SignupRequest(
         @NotBlank @Email String email,
         @NotBlank @Size(min = 8) String password,
         @NotBlank String name,
-        @NotBlank String contact
+        @NotBlank String contact,
+        String invitationToken
 ) {}
