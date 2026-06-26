@@ -34,16 +34,15 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
 
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));
+  const [token, setToken] = useState<string | null>(() => {
+    const t = localStorage.getItem(TOKEN_KEY);
+    setClientToken(t); // sync: must run before child effects fire on reload
+    return t;
+  });
   const [user, setUser] = useState<AuthUser | null>(() => {
     const raw = localStorage.getItem(USER_KEY);
     return raw ? (JSON.parse(raw) as AuthUser) : null;
   });
-
-  // Keep API client token in sync
-  useEffect(() => {
-    setClientToken(token);
-  }, [token]);
 
   // Register 401 handler: any request with an expired token → log out + redirect
   useEffect(() => {
